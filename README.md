@@ -1,46 +1,99 @@
-# 📝 ToDo List Application (React + Vite)
+# 📝 ToDo List App (React + Supabase)
 
-A secure and responsive **task management web application** built using **React and Vite**, allowing users to create, track, and manage their daily tasks efficiently.
+A secure and modern **task management web application** built using **React and Vite**, powered by **Supabase** for authentication and database storage. Users can sign up, log in, and manage their personal to-do lists with persistent cloud storage.
 
 ---
 
-## 🔁 Application Workflow
+## 🔁 Application Demo
 
 ![ToDo App Demo](./ToDoListProject.gif)
 
-This GIF shows:
-- User authentication
-- Creating a new task
-- Marking a task as completed
-- Deleting tasks
-- Real-time UI updates
+This demo shows:
+- User login & signup  
+- Adding new tasks  
+- Marking tasks as completed  
+- Deleting tasks  
+- Real-time updates synced with Supabase  
 
 ---
 
 ## ✨ Features
 
-- User authentication (secure login system)
-- Add new tasks
-- Mark tasks as completed
-- Delete tasks
-- Clean and responsive UI
-- Persistent task storage
+- 🔐 Secure authentication using **Supabase Auth**
+- 📝 Create, complete, and delete tasks
+- 🗄️ Tasks stored in a **Supabase PostgreSQL database**
+- 👤 Each user sees only their own tasks
+- ⚡ Fast, responsive UI built with **React + Vite**
+- 📱 Clean and simple design
 
 ---
 
 ## 🛠 Tech Stack
 
-- **Frontend:** React (Vite)
-- **Styling:** CSS
-- **Backend / Auth:** *(Supabase / Firebase / Custom API — update this if needed)*
-- **Version Control:** Git & GitHub
+| Layer | Technology |
+|------|-----------|
+| Frontend | React, Vite |
+| Backend | Supabase |
+| Authentication | Supabase Auth |
+| Database | PostgreSQL (Supabase) |
+| Styling | CSS |
+| Build Tool | Vite |
 
 ---
 
-## 🚀 How to Run Locally
+## 🧠 How It Works
 
-```bash
+1. Users authenticate via **Supabase Auth**
+2. After login, tasks are fetched from Supabase
+3. Users can add, update, and delete tasks
+4. All changes are stored instantly in the cloud
+5. The UI updates automatically
+
+---
+
+## 🚀 Run Locally
+
+ ### 1️⃣ Clone the repository
+bash
 git clone https://github.com/SomdebSar2002/ToDoListProject
 cd ToDoListProject
+### 2️⃣ Install dependencies
+bash
+Copy code
 npm install
-npm run dev
+    ### 3️⃣ Create a Supabase Project
+
+Go to https://supabase.com
+-Create a new project
+-Create a todos table with:
+  -id
+  -user_id
+  task
+  is_completed
+
+Enable Row Level Security (RLS) so users only see their own tasks
+
+### 4️⃣ Add environment variables
+  Create a .env file:
+  ini
+  Copy code
+  VITE_SUPABASE_URL=your_project_url
+  VITE_SUPABASE_ANON_KEY=your_anon_key
+### 5️⃣ Start the app
+  bash
+  Copy code
+  npm run dev
+  Open http://localhost:5173 in your browser.
+
+### 📌 What This Project Shows
+  Real-world React application structure
+  Supabase authentication & database usage
+  Full CRUD operations
+  Cloud backend integration
+  Clean UI and UX
+
+### 🔮 Future Improvements
+  Task filters (Completed / Pending)
+  Due dates & priorities
+  Dark mode
+  Team-based shared lists
