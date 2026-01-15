@@ -1,16 +1,46 @@
-# React + Vite
+# 📝 ToDo List Application (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A secure and responsive **task management web application** built using **React and Vite**, allowing users to create, track, and manage their daily tasks efficiently.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🔁 Application Workflow
 
-## React Compiler
+![ToDo App Demo](./ToDoListProject.gif)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+This GIF shows:
+- User authentication
+- Creating a new task
+- Marking a task as completed
+- Deleting tasks
+- Real-time UI updates
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## ✨ Features
+
+- User authentication (secure login system)
+- Add new tasks
+- Mark tasks as completed
+- Delete tasks
+- Clean and responsive UI
+- Persistent task storage
+
+---
+
+## 🛠 Tech Stack
+
+- **Frontend:** React (Vite)
+- **Styling:** CSS
+- **Backend / Auth:** *(Supabase / Firebase / Custom API — update this if needed)*
+- **Version Control:** Git & GitHub
+
+---
+
+## 🚀 How to Run Locally
+
+```bash
+git clone https://github.com/SomdebSar2002/ToDoListProject
+cd ToDoListProject
+npm install
+npm run dev
