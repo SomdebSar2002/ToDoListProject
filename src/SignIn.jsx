@@ -1,44 +1,97 @@
-import {useState} from 'react';
-import {useAuth} from './AuthProvider';
+import { useAuth } from './AuthProvider';
 import { useNavigate } from 'react-router-dom';
-export default function SignIn(){
-    const {signIn} = useAuth();
+import { useActionState } from 'react';
+import { Link } from 'react-router-dom';
+export default function SignIn() {
+    const { signIn } = useAuth();
     const navigate = useNavigate();
-    const [formData,setFormData] = useState({
-        email:'',
-        password:''
-    });
-    const handleChange = (e)=>{
-        const {name,value} = e.target;
-        setFormData((prevData)=>({
-            ...prevData,
-            [name]:value
-        }));
-    }
-    const handleSubmit = async (e)=>{
-        e.preventDefault();
-        const result = await signIn(formData);
-        if(result.success){
-            console.log("User signed in successfully: ", result.data);
-            navigate('/dashboard')
-            // navigate to dashboard
-        }else{
-            console.error("Wrong email or password: ", result.error);
-            // show error message
+    const [error, submitAction, isPending] = useActionState(async (previousState, formData) => {
+        const email = formData.get('email');
+        const password = formData.get('password');
+        const {
+            success,
+            data,
+            error: signInError
+        } = await signIn(email,password);
+        if (signInError) return signInError;
+        if(success&& data?.session){
+            console.log("SignIn Data: ",data);
+            navigate('/dashboard');
+            return null;
         }
-    }
-    return(
-        <div>
-            <h1>Sign In Page</h1>
-            <form onSubmit={handleSubmit}>
-                <label>Email:</label>
-                <input type="email" name="email" value={formData.email} onChange={handleChange} required />
-                <br/>
-                <label>Password:</label>
-                <input type="password" name="password" value={formData.password} onChange={handleChange} required />
-                <br/>
-                <button type="submit">Sign In</button>
-            </form>
-        </div>
-    )
+        return "Unable to sign in.";
+    },null);
+
+    return (
+        <>
+            <h1 className="landing-header">ToDoList Login Portal</h1>
+            <div className="sign-form-container">
+                <form
+                    action={submitAction}
+                    aria-label="Sign in form"
+                    aria-describedby="form-description"
+                >
+                    <div id="form-description" className="sr-only">
+                        Use this form to sign in to your account. Enter your email and
+                        password.
+                    </div>
+
+                    <h2 className="form-title">Sign in</h2>
+                    <p>
+                        Don't have an account yet?{' '}
+                        <Link className="form-link" to="/signup">
+                            Sign up
+                        </Link>
+                    </p>
+
+                    <label htmlFor="email">Email</label>
+                    <input
+                        className="form-input"
+                        type="email"
+                        name="email"
+                        id="email"
+                        placeholder=""
+                        required
+                        aria-required="true"
+                        aria-invalid={error ? 'true' : 'false'}
+                        aria-describedby={error ? 'signin-error' : undefined}
+                        disabled={isPending}
+                    />
+
+                    <label htmlFor="password">Password</label>
+                    <input
+                        className="form-input"
+                        type="password"
+                        name="password"
+                        id="password"
+                        placeholder=""
+                        required
+                        aria-required="true"
+                        aria-invalid={error ? 'true' : 'false'}
+                        aria-describedby={error ? 'signin-error' : undefined}
+                        disabled={isPending}
+                    />
+
+                    <button
+                        type="submit"
+                        disabled={isPending}
+                        className="form-button"
+                        aria-busy={isPending}
+                    >
+                        {isPending ? 'Signing in...' : 'Sign In'}
+                    </button>
+
+                    {error && (
+                        <div
+                            id="signin-error"
+                            role="alert"
+                            className="sign-form-error-message"
+                        >
+                            {error}
+                        </div>
+                    )}
+                </form>
+            </div>
+        </>
+    );
 }

@@ -2,20 +2,44 @@ import './index.css';
 import { useState, useEffect } from 'react';
 import { supabase } from './supabase-client';
 import { useAuth } from './AuthProvider';
+import { useNavigate } from 'react-router-dom';
 export default function App() {
-    const {email,username,signOut} = useAuth();
-    console.log("Dashboard Username: ", username);
-    console.log("Dashboard Email: ", email);
-    const [userName, setUserName] = useState(username);
+    const { session, signOut, users } = useAuth();
+    const currentUser = users.find((user) => user.id === session?.user?.id);
+    const [userName, setuserName] = useState(currentUser?.name || "");
+    const [email, setEmail] = useState(currentUser?.email || "");
     const [entry, setEntry] = useState("");
+    const navigate = useNavigate();
+    const handleSignOut = async (e) => {
+        e.preventDefault();
+        const { error } = await signOut();
+        if (error) {
+            console.error("Error signing out:", error);
+        } else {
+            navigate('/signin');       
+            console.log("Signed out successfully");
+        }
+    }
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const { data, error } = await supabase.from('todolists').insert([{ list: entry, email: email, checked: false, name: userName }]).single();
+        if (!currentUser) return;
+        const { data, error } = await supabase
+            .from('todolists')
+            .insert([
+                {
+                    list: entry,
+                    email: email,
+                    checked: false,
+                    name: userName,
+                    user_id: currentUser.id
+                }
+            ])
+            .single();
         setEntry("");
         if (error) {
             console.error("Error adding todo item:", error);
-        } else {
-            console.log("Todo item added:", data);
         }
     }
     const [incompleteTasks, setIncompleteTasks] = useState([]);
@@ -23,32 +47,35 @@ export default function App() {
 
 
     const fetchIncompleteTasks = async () => {
-        const { data, error } = await supabase.from('todolists').select('id,list, checked').eq('checked', false).eq('email', email);
+        if (!currentUser?.id) return;
+        const { data, error } = await supabase.from('todolists').select('id,list, checked').eq('checked', false).eq('user_id', currentUser?.id);
         if (!error) { setIncompleteTasks(data); }
     };
 
     const fetchCompleteTasks = async () => {
-        const { data, error } = await supabase.from('todolists').select('id,list, checked').eq('checked', true).eq('email', email);
+        if (!currentUser?.id) return;
+        const { data, error } = await supabase.from('todolists').select('id,list, checked').eq('checked', true).eq('user_id', currentUser?.id);
 
         if (!error) { setCompleteTasks(data); }
     }
-
+    const fetchUsers = async () => {
+        setuserName(currentUser?.name || "");
+        setEmail(currentUser?.email || "");
+    };
+    useEffect(() => {
+        fetchUsers();
+    }, [currentUser]);
     const deleteTask = async (id) => {
-        const { data, error } = await supabase.from('todolists').delete().eq('id', id);
+        const { data, error } = await supabase.from('todolists').delete().eq('id', id).eq('user_id', currentUser?.id);
 
         if (error) {
             console.error("Error deleting task:", error);
-        } else {
-            console.log("Task deleted:", data);
         }
     }
     const toggleTaskCompletion = async (id, checked) => {
-        const { data, error } = await supabase.from('todolists').update({ checked: checked }).eq('id', id);
+        const { data, error } = await supabase.from('todolists').update({ checked: checked }).eq('id', id).eq('user_id', currentUser?.id);
         if (error) {
             console.error("Error updating task:", error);
-        }
-        else {
-            console.log("Task updated:", data);
         }
     }
     const editTask = async (id, ch) => {
@@ -66,9 +93,8 @@ export default function App() {
 
         if (item.classList.contains('editMode')) {
             item.classList.remove('editMode');
-            const { data, error } = await supabase.from('todolists').update({ list: newText }).eq('id', id);
+            const { data, error } = await supabase.from('todolists').update({ list: newText }).eq('id', id).eq('user_id', currentUser?.id);
             if (!error) {
-                console.log("Task edited:", data);
                 fetchIncompleteTasks();
                 fetchCompleteTasks();
             }
@@ -76,23 +102,19 @@ export default function App() {
             item.classList.add('editMode');
         }
     }
-    console.log("Incomplete Tasks:", incompleteTasks);
-    console.log("Complete Tasks:", completeTasks);
-    const fetchUsername = async () => {
-        const { data, error } = await supabase.from('todolists').select('name').eq('email', email).single();
-        if (!error && data) {
-            setUserName(data.name);
-        }
-    };
+    useEffect(() => {
+        if (!currentUser) return;
+        setuserName(currentUser.name || "");
+        setEmail(currentUser.email || "");
+    }, [currentUser]);
+
     useEffect(() => {
         fetchIncompleteTasks();
         fetchCompleteTasks();
-        fetchUsername();
         const subs = supabase.channel('todolistactivity').on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'todolists' },
             (payload) => {
-                console.log('Change received!', payload);
                 fetchIncompleteTasks();
                 fetchCompleteTasks();
             }
@@ -100,13 +122,12 @@ export default function App() {
         return () => {
             subs.unsubscribe();
         }
-    }, []);
+    }, [session, currentUser?.id]);
     return (
         <div className="App">
 
-            <h2>Welcome{userName&&', '}{userName}!</h2>
             <div className="container">
-                <h2>TODO LIST</h2>
+                <h2>{userName ? `${userName}'s TODO LIST` : "TODO LIST"}</h2>
                 <h3>Add Item</h3>
                 <p>
                     <input id="new-task" type="text" value={entry} onChange={(e) => setEntry(e.target.value)} /><button onClick={handleSubmit}>Add</button>
@@ -145,7 +166,7 @@ export default function App() {
                         </li>
                     ))}<br />
                 </ul>
-                            <button onClick={signOut} style={{ display: 'block', margin: 'auto' }}>Sign Out</button>
+                            <button onClick={handleSignOut} style={{ display: 'block', margin: 'auto' }}>Sign Out</button>
             </div>
         </div>
     );

@@ -1,61 +1,112 @@
-import React from 'react';
-import { Link } from "react-router-dom";
+import { data, Link } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
-import {useNavigate} from 'react-router-dom';
-const Signup = () => {
+import { useActionState } from "react";
+import { useNavigate } from "react-router-dom";
+export default function SignUp() {
+    const { signUp } = useAuth();
     const navigate = useNavigate();
-    const [formData, setFormData] = React.useState({
-        email: '',
-        password: '',
-        username: ''
-    });
-    const [loading, setLoading] = React.useState(false);
-    const [error, setError] = React.useState(null);
-    const {signUpNewUser} = useAuth();
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        // Handle sign-up logic here, e.g., call an API to create a new user
-        const result  = await signUpNewUser(formData)
-        if(result.success){
-            console.log("User signed up successfully: ", result.data);
-            navigate('/dashboard')
-        }
-        else
-        {
-            setError(result.error.message);
-            // navigate('/signup')
-        }
-        console.log("Form Data Submitted: ", formData);
-        setLoading(false);
-    }
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: value
-        }));
-    }
+        const [error,submitAction,isPending] = useActionState(
+            async (previousState, formData) => {
+                const email = formData.get('email');
+                const password = formData.get('password');
+                const name = formData.get('name');
+                const { success, error: signUpError } = await signUp(email, password, name);
+                if (signUpError) {
+                    return new Error(signUpError);
+                }
+                if (success&&data?.session) {
+                    navigate('/dashboard');
+                    return null;
+                }
+                return null;
+            },
+            null
+        );
     return (
-        <div>
-            {loading ? <p>Loading...</p> : <><form onSubmit={handleSubmit}>
-                <div>
-                    <label htmlFor="email">Email:</label>
-                    <input type="email" id="email" name="email" onChange={handleChange} required />
-                </div>
-                <div>
-                    <label htmlFor="username">Username:</label>
-                    <input type="text" id="username" name="username" onChange={handleChange} required />
-                </div>
-                <div>
-                    <label htmlFor="password">Password:</label>
-                    <input type="password" id="password" name="password" required onChange={handleChange} />
-                </div>
-                <button type="submit">Sign Up</button>
-            </form><p>Already have an account? <Link to="/signin">Log In</Link></p>
-            {error && <p style={{color:'red'}}>Error: {error}</p>}
-            </>}
-        </div>
-    )
-};
-export default Signup;
+        <>
+            <h1 className="landing-header">TodoList SignUP portal</h1>
+            <div className="sign-form-container">
+                <form
+                    action={submitAction}
+                    aria-label="Sign up form"
+                    aria-describedby="form-description"
+                >
+                    <div id="form-description" className="sr-only">
+                        Use this form to create a new account. Enter your name, email,
+                        and password.
+                    </div>
+
+                    <h2 className="form-title">Sign up</h2>
+                    <p>
+                        Already have an account?{' '}
+                        <Link className="form-link" to="/signin">
+                            Sign in
+                        </Link>
+                    </p>
+
+                    <label htmlFor="name">Name</label>
+                    <input
+                        className="form-input"
+                        type="text"
+                        name="name"
+                        id="name"
+                        placeholder=""
+                        required
+                        aria-required="true"
+                        aria-invalid={error ? 'true' : 'false'}
+                        aria-describedby={error ? 'signup-error' : undefined}
+                        disabled={isPending}
+                    />
+
+                    <label htmlFor="email">Email</label>
+                    <input
+                        className="form-input"
+                        type="email"
+                        name="email"
+                        id="email"
+                        placeholder=""
+                        required
+                        aria-required="true"
+                        aria-invalid={error ? 'true' : 'false'}
+                        aria-describedby={error ? 'signup-error' : undefined}
+                        disabled={isPending}
+                    />
+
+                    <label htmlFor="password">Password</label>
+                    <input
+                        className="form-input"
+                        type="password"
+                        name="password"
+                        id="password"
+                        placeholder=""
+                        required
+                        aria-required="true"
+                        aria-invalid={error ? 'true' : 'false'}
+                        aria-describedby={error ? 'signup-error' : undefined}
+                        disabled={isPending}
+                    />
+
+                    <button
+                        type="submit"
+                        disabled={isPending}
+                        className="form-button"
+                        aria-busy={isPending}
+                    >
+                        {isPending ? 'Signing up...' : 'Sign up'}
+                    </button>
+
+                    {error && (
+                        <div
+                            id="signup-error"
+                            className="form-error"
+                            role="alert"
+                            aria-live="assertive"
+                        >
+                            {error.message}
+                        </div>
+                    )}
+                </form>
+            </div>
+        </>
+    );
+}
